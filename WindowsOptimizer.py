@@ -3,8 +3,8 @@ Windows Performance & Gaming Optimizer
 Run as Administrator for full effect.
 """
 
-import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+import customtkinter as ctk
+from tkinter import messagebox
 import threading
 import subprocess
 import os
@@ -20,7 +20,7 @@ import urllib.request
 import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION    = "1.1.0"
+VERSION    = "1.2.0"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
 UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
 
@@ -32,17 +32,16 @@ def is_file_ready(file_path):
         return True
     except (PermissionError, OSError): return False
 
-# ─── Color palette ───────────────────────────────────────────────────────────
-BG        = "#0d0f1a"
-PANEL     = "#131627"
+# ─── Appearance ─────────────────────────────────────────────────────────────
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+# ─── Color palette (Custom for text tags/manual colors) ──────────────────────
 ACCENT    = "#00e5ff"
-ACCENT2   = "#7c3aed"
 SUCCESS   = "#00ff88"
 WARNING   = "#ffaa00"
 DANGER    = "#ff4444"
 TEXT      = "#e2e8f0"
-SUBTEXT   = "#64748b"
-BORDER    = "#1e2540"
 
 # ─── Admin check ─────────────────────────────────────────────────────────────
 def is_admin():
@@ -382,175 +381,146 @@ REVERT_TASKS = {
 
 # ─── GUI ─────────────────────────────────────────────────────────────────────
 
-class OptimizerApp(tk.Tk):
+class OptimizerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title(f"⚡ Windows Performance Optimizer v{VERSION}")
-        self.geometry("880x680")
-        self.resizable(True, True)
-        self.configure(bg=BG)
+        self.title(f"⚡ Windows Optimizer v{VERSION}")
+        self.geometry("920x720")
         self.running = False
         self.checks = {}
         self._build_ui()
         self.check_for_updates()
 
     def _build_ui(self):
-        # ── Header ──
-        hdr = tk.Frame(self, bg=BG)
-        hdr.pack(fill="x", padx=24, pady=(20, 0))
+        # ── Grid config ──
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        tk.Label(
-            hdr, text=f"⚡ Windows Optimizer v{VERSION}",
-            font=("Consolas", 22, "bold"), fg=ACCENT, bg=BG
-        ).pack(side="left")
+        # ── Sidebar ──
+        self.sidebar = ctk.CTkFrame(self, width=280, corner_radius=0)
+        self.sidebar.grid(row=0, column=0, sticky="nsew")
+        self.sidebar.grid_rowconfigure(4, weight=1)
 
+        ctk.CTkLabel(
+            self.sidebar, text="⚡ Optimizer",
+            font=ctk.CTkFont(size=24, weight="bold"), text_color=ACCENT
+        ).grid(row=0, column=0, padx=20, pady=(20, 10))
+
+        # Admin status
         admin_color = SUCCESS if is_admin() else DANGER
-        admin_text  = "● Admin" if is_admin() else "● No Admin"
-        tk.Label(
-            hdr, text=admin_text,
-            font=("Consolas", 11), fg=admin_color, bg=BG
-        ).pack(side="right", padx=4)
+        admin_text  = "● Admin Active" if is_admin() else "● No Admin Rights"
+        ctk.CTkLabel(
+            self.sidebar, text=admin_text,
+            font=ctk.CTkFont(size=12), text_color=admin_color
+        ).grid(row=1, column=0, padx=20, pady=(0, 20))
 
-        if not is_admin():
-            tk.Label(
-                self,
-                text="⚠  Run as Administrator for full effect  ⚠",
-                font=("Consolas", 10), fg=WARNING, bg=BG
-            ).pack(pady=(4, 0))
-
-        # ── Divider ──
-        tk.Frame(self, bg=BORDER, height=1).pack(fill="x", padx=24, pady=10)
-
-        # ── Main layout ──
-        body = tk.Frame(self, bg=BG)
-        body.pack(fill="both", expand=True, padx=24, pady=0)
-        body.columnconfigure(0, weight=1)
-        body.columnconfigure(1, weight=2)
-        body.rowconfigure(0, weight=1)
-
-        # Left: checkboxes
-        left = tk.Frame(body, bg=PANEL, bd=0, highlightthickness=1,
-                        highlightbackground=BORDER)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
-
-        tk.Label(
-            left, text="Select Optimizations",
-            font=("Consolas", 11, "bold"), fg=ACCENT, bg=PANEL, pady=10
-        ).pack(fill="x", padx=12)
-
-        tk.Frame(left, bg=BORDER, height=1).pack(fill="x", padx=12)
+        # Checkboxes area
+        self.scrollable_frame = ctk.CTkScrollableFrame(self.sidebar, label_text="Optimizations")
+        self.scrollable_frame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        self.scrollable_frame.grid_columnconfigure(0, weight=1)
 
         for group in TASKS:
-            var = tk.BooleanVar(value=True)
+            var = ctk.BooleanVar(value=True)
             self.checks[group] = var
-            cb = tk.Checkbutton(
-                left, text=group, variable=var,
-                font=("Consolas", 10), fg=TEXT, bg=PANEL,
-                selectcolor=PANEL, activebackground=PANEL,
-                activeforeground=ACCENT, anchor="w",
-                relief="flat", bd=0, pady=6, padx=12,
-                highlightthickness=0
+            cb = ctk.CTkCheckBox(
+                self.scrollable_frame, text=group, variable=var,
+                font=ctk.CTkFont(size=13), corner_radius=6
             )
-            cb.pack(fill="x")
+            cb.pack(fill="x", padx=10, pady=10)
 
-        # select all / none
-        btn_row = tk.Frame(left, bg=PANEL)
-        btn_row.pack(fill="x", padx=12, pady=8)
+        # Sidebar Buttons
+        self.all_btn = ctk.CTkButton(
+            self.sidebar, text="Select All", height=32,
+            fg_color="transparent", border_width=1,
+            command=self._select_all
+        )
+        self.all_btn.grid(row=3, column=0, padx=20, pady=(10, 0))
 
-        tk.Button(
-            btn_row, text="All", command=self._select_all,
-            bg=BORDER, fg=TEXT, font=("Consolas", 9),
-            relief="flat", padx=8, pady=3, cursor="hand2"
-        ).pack(side="left", padx=(0, 4))
+        self.none_btn = ctk.CTkButton(
+            self.sidebar, text="Deselect All", height=32,
+            fg_color="transparent", border_width=1,
+            command=self._select_none
+        )
+        self.none_btn.grid(row=4, column=0, padx=20, pady=(10, 0), sticky="n")
 
-        tk.Button(
-            btn_row, text="None", command=self._select_none,
-            bg=BORDER, fg=TEXT, font=("Consolas", 9),
-            relief="flat", padx=8, pady=3, cursor="hand2"
+        # Sidebar Footer
+        self.gh_btn = ctk.CTkButton(
+            self.sidebar, text="⭐ GitHub", height=32,
+            fg_color="#24292e", hover_color="#333",
+            command=self._open_github
+        )
+        self.gh_btn.grid(row=5, column=0, padx=20, pady=10)
+
+        self.upd_btn = ctk.CTkButton(
+            self.sidebar, text="🔄 Check Update", height=32,
+            fg_color="transparent", border_width=1, border_color=SUCCESS,
+            text_color=SUCCESS, hover_color="#1a3328",
+            command=lambda: self.check_for_updates(manual=True)
+        )
+        self.upd_btn.grid(row=6, column=0, padx=20, pady=(0, 20))
+
+        # ── Main Area ──
+        self.main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_frame.grid_rowconfigure(1, weight=1)
+
+        # Top Bar
+        self.top_bar = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.top_bar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        
+        ctk.CTkLabel(
+            self.top_bar, text="Operation Log",
+            font=ctk.CTkFont(size=16, weight="bold")
         ).pack(side="left")
 
-        # Right: log
-        right = tk.Frame(body, bg=PANEL, bd=0, highlightthickness=1,
-                         highlightbackground=BORDER)
-        right.grid(row=0, column=1, sticky="nsew")
-
-        tk.Label(
-            right, text="Output Log",
-            font=("Consolas", 11, "bold"), fg=ACCENT, bg=PANEL, pady=10
-        ).pack(fill="x", padx=12)
-
-        tk.Frame(right, bg=BORDER, height=1).pack(fill="x", padx=12)
-
-        self.log_box = scrolledtext.ScrolledText(
-            right, bg=BG, fg=TEXT,
-            font=("Consolas", 10), relief="flat",
-            insertbackground=ACCENT, wrap="word",
-            padx=12, pady=8, bd=0
+        self.clear_btn = ctk.CTkButton(
+            self.top_bar, text="Clear", width=80, height=26,
+            fg_color="transparent", border_width=1,
+            command=self._clear_log
         )
-        self.log_box.pack(fill="both", expand=True, padx=8, pady=8)
-        self.log_box.tag_config("ok",      foreground=SUCCESS)
-        self.log_box.tag_config("err",     foreground=DANGER)
-        self.log_box.tag_config("section", foreground=ACCENT)
-        self.log_box.tag_config("info",    foreground=WARNING)
+        self.clear_btn.pack(side="right")
 
-        # ── Bottom buttons ──
-        bottom = tk.Frame(self, bg=BG)
-        bottom.pack(fill="x", padx=24, pady=14)
+        # Log Textbox
+        self.log_box = ctk.CTkTextbox(self.main_frame, font=ctk.CTkFont(family="Consolas", size=13))
+        self.log_box.grid(row=1, column=0, sticky="nsew")
+        
+        # Tags for log box
+        # Note: CTkTextbox doesn't support tags directly like tk.Text, but we can access the internal widget
+        self.log_box._textbox.tag_config("ok",      foreground=SUCCESS)
+        self.log_box._textbox.tag_config("err",     foreground=DANGER)
+        self.log_box._textbox.tag_config("section", foreground=ACCENT)
+        self.log_box._textbox.tag_config("info",    foreground=WARNING)
 
-        self.progress = ttk.Progressbar(bottom, mode="indeterminate", length=300)
-        self.progress.pack(side="left", padx=(0, 16))
+        # Action Buttons
+        self.actions = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.actions.grid(row=2, column=0, sticky="ew", pady=(10, 0))
 
-        self.run_btn = tk.Button(
-            bottom, text="▶  Run Selected Optimizations",
-            command=self._run,
-            bg=ACCENT2, fg="white",
-            font=("Consolas", 11, "bold"),
-            relief="flat", padx=18, pady=8,
-            cursor="hand2", activebackground="#6d28d9"
+        self.run_btn = ctk.CTkButton(
+            self.actions, text="▶  Run Optimizations", height=45,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color=ACCENT2, hover_color="#6d28d9",
+            command=self._run
         )
-        self.run_btn.pack(side="left")
+        self.run_btn.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
-        self.undo_btn = tk.Button(
-            bottom, text="⏪ Undo Changes",
-            command=self._undo,
-            bg=BORDER, fg=WARNING,
-            font=("Consolas", 11, "bold"),
-            relief="flat", padx=18, pady=8,
-            cursor="hand2", activebackground=PANEL
+        self.undo_btn = ctk.CTkButton(
+            self.actions, text="⏪ Undo Changes", height=45,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color="#334155", hover_color="#475569",
+            text_color=WARNING,
+            command=self._undo
         )
-        self.undo_btn.pack(side="left", padx=10)
+        self.undo_btn.pack(side="left", fill="x", expand=True, padx=(5, 0))
 
-        # GitHub Button
-        tk.Button(
-            bottom, text="⭐ GitHub",
-            command=self._open_github,
-            bg=BORDER, fg=ACCENT,
-            font=("Consolas", 10, "bold"),
-            relief="flat", padx=12, pady=8,
-            cursor="hand2"
-        ).pack(side="right", padx=(8, 0))
+        # Progress
+        self.progress = ctk.CTkProgressBar(self.main_frame, mode="indeterminate")
+        self.progress.grid(row=3, column=0, sticky="ew", pady=(15, 0))
+        self.progress.set(0)
 
-        # Update Button
-        tk.Button(
-            bottom, text="🔄 Update",
-            command=lambda: self.check_for_updates(manual=True),
-            bg=BORDER, fg=SUCCESS,
-            font=("Consolas", 10, "bold"),
-            relief="flat", padx=12, pady=8,
-            cursor="hand2"
-        ).pack(side="right", padx=(8, 0))
-
-        tk.Button(
-            bottom, text="Clear Log",
-            command=self._clear_log,
-            bg=BORDER, fg=SUBTEXT,
-            font=("Consolas", 10),
-            relief="flat", padx=12, pady=8,
-            cursor="hand2"
-        ).pack(side="right")
-
-        self._log("  Welcome! Select the optimizations you want to apply,")
-        self._log("  then click ▶ Run. Run as Administrator for best results.\n", "info")
+        self._log("  Welcome! Select categories in the sidebar and click Run.", "info")
+        if not is_admin():
+            self._log("  [!] Running without Administrator rights. Most tweaks will fail.", "err")
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -584,7 +554,6 @@ class OptimizerApp(tk.Tk):
                                     f.write(chunk)
                                     sha256_hash.update(chunk)
                         
-                        # Verify file is ready
                         if not is_file_ready(update_path):
                             self._log("[!] Error: Update file not ready.", "err")
                             return
@@ -618,7 +587,7 @@ class OptimizerApp(tk.Tk):
             return
         self.running = True
         self.undo_btn.configure(state="disabled", text="⏳ Reverting...")
-        self.progress.start(12)
+        self.progress.start()
         threading.Thread(target=self._undo_worker, args=(selected,), daemon=True).start()
 
     def _undo_worker(self, groups):
@@ -679,7 +648,7 @@ class OptimizerApp(tk.Tk):
             return
         self.running = True
         self.run_btn.configure(state="disabled", text="⏳ Running...")
-        self.progress.start(12)
+        self.progress.start()
         threading.Thread(target=self._worker, args=(selected,), daemon=True).start()
 
     def _worker(self, groups):
@@ -705,7 +674,7 @@ class OptimizerApp(tk.Tk):
         def finalize():
             self.running = False
             self.progress.stop()
-            self.run_btn.configure(state="normal", text="▶  Run Selected Optimizations")
+            self.run_btn.configure(state="normal", text="▶  Run Optimizations")
         self.after(0, finalize)
 
 # ─── Entry point ─────────────────────────────────────────────────────────────

@@ -14,10 +14,23 @@ import winreg
 import time
 import glob
 import webbrowser
+import hashlib
+import json
+import urllib.request
+import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION   = "1.0.0"
+VERSION    = "1.1.0"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
+UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
+
+def is_file_ready(file_path):
+    """Check if a file is completely written and unlocked."""
+    try:
+        if not os.path.exists(file_path): return False
+        with open(file_path, 'a'): pass
+        return True
+    except (PermissionError, OSError): return False
 
 # ─── Color palette ───────────────────────────────────────────────────────────
 BG        = "#0d0f1a"
@@ -261,6 +274,82 @@ def run_disk_cleanup(log):
     log("   ✔ Disk Cleanup launched")
 
 
+# ─── Revert functions ──────────────────────────────────────────────────────────
+
+def revert_power_plan(log):
+    log("⚡ Reverting power plan to Balanced...")
+    ok, _ = run_cmd(["powercfg", "/setactive", "381b4222-f694-41f0-9685-ff5bb260df2e"])
+    log("   ✔ Balanced power plan set" if ok else "   ✖ Failed to set Balanced plan")
+
+def revert_timer_resolution(log):
+    log("⏱  Reverting processor scheduling to default...")
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\PriorityControl", 0, winreg.KEY_SET_VALUE) as key:
+            winreg.SetValueEx(key, "Win32PrioritySeparation", 0, winreg.REG_DWORD, 2)
+        log("   ✔ CPU priority reverted to default")
+    except Exception as e: log(f"   ✖ {e}")
+
+def revert_game_mode(log):
+    log("🎮 Disabling Windows Game Mode...")
+    try:
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\GameBar") as key:
+            winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0)
+            winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 0)
+        log("   ✔ Game Mode disabled")
+    except Exception as e: log(f"   ✖ {e}")
+
+def revert_xbox_game_bar(log):
+    log("🎮 Enabling Xbox Game Bar overlay...")
+    try:
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\GameDVR") as key:
+            winreg.SetValueEx(key, "AppCaptureEnabled", 0, winreg.REG_DWORD, 1)
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore") as key2:
+            winreg.SetValueEx(key2, "GameDVR_Enabled", 0, winreg.REG_DWORD, 1)
+        log("   ✔ Xbox Game Bar enabled")
+    except Exception as e: log(f"   ✖ {e}")
+
+def revert_gpu_scheduling(log):
+    log("🖥  Disabling Hardware-Accelerated GPU Scheduling...")
+    try:
+        with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers") as key:
+            winreg.SetValueEx(key, "HwSchMode", 0, winreg.REG_DWORD, 1)
+        log("   ✔ HAGS disabled (restart required)")
+    except Exception as e: log(f"   ✖ {e}")
+
+def revert_visual_effects(log):
+    log("🎨 Reverting visual effects to Windows default...")
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects", 0, winreg.KEY_SET_VALUE) as key:
+            winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 0)
+        log("   ✔ Visual effects reverted")
+    except Exception as e: log(f"   ✖ {e}")
+
+def revert_search_indexing(log):
+    log("🔍 Enabling Windows Search indexing service...")
+    run_cmd(["sc", "config", "WSearch", "start=", "delayed-auto"])
+    ok, _ = run_cmd(["sc", "start", "WSearch"])
+    log("   ✔ Search indexing enabled" if ok else "   ✖ Could not enable")
+
+def revert_telemetry(log):
+    log("📡 Enabling Windows telemetry services...")
+    run_cmd(["sc", "config", "DiagTrack", "start=", "auto"])
+    run_cmd(["sc", "start", "DiagTrack"])
+    try:
+        with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\DataCollection") as key:
+            winreg.DeleteValue(key, "AllowTelemetry")
+    except Exception: pass
+    log("   ✔ Telemetry services enabled")
+
+def revert_network_optimization(log):
+    log("🌐 Reverting network settings to defaults...")
+    cmds = [
+        ["netsh", "int", "tcp", "set", "global", "autotuninglevel=normal"],
+        ["netsh", "int", "tcp", "set", "global", "rss=enabled"],
+        ["netsh", "int", "tcp", "set", "global", "timestamps=disabled"],
+    ]
+    for cmd in cmds: run_cmd(cmd)
+    log("   ✔ Network settings reverted")
+
 # ─── Task groups ─────────────────────────────────────────────────────────────
 
 TASKS = {
@@ -284,6 +373,13 @@ TASKS = {
     ],
 }
 
+REVERT_TASKS = {
+    "⚡ Power & CPU Tuning": [revert_power_plan, revert_timer_resolution],
+    "🎮 Gaming Optimizations": [revert_game_mode, revert_xbox_game_bar, revert_gpu_scheduling, revert_visual_effects],
+    "🚀 Startup & Services": [revert_search_indexing, revert_telemetry],
+    "🌐 Network & DNS": [revert_network_optimization],
+}
+
 # ─── GUI ─────────────────────────────────────────────────────────────────────
 
 class OptimizerApp(tk.Tk):
@@ -296,6 +392,7 @@ class OptimizerApp(tk.Tk):
         self.running = False
         self.checks = {}
         self._build_ui()
+        self.check_for_updates()
 
     def _build_ui(self):
         # ── Header ──
@@ -413,11 +510,31 @@ class OptimizerApp(tk.Tk):
         )
         self.run_btn.pack(side="left")
 
+        self.undo_btn = tk.Button(
+            bottom, text="⏪ Undo Changes",
+            command=self._undo,
+            bg=BORDER, fg=WARNING,
+            font=("Consolas", 11, "bold"),
+            relief="flat", padx=18, pady=8,
+            cursor="hand2", activebackground=PANEL
+        )
+        self.undo_btn.pack(side="left", padx=10)
+
         # GitHub Button
         tk.Button(
             bottom, text="⭐ GitHub",
             command=self._open_github,
             bg=BORDER, fg=ACCENT,
+            font=("Consolas", 10, "bold"),
+            relief="flat", padx=12, pady=8,
+            cursor="hand2"
+        ).pack(side="right", padx=(8, 0))
+
+        # Update Button
+        tk.Button(
+            bottom, text="🔄 Update",
+            command=lambda: self.check_for_updates(manual=True),
+            bg=BORDER, fg=SUCCESS,
             font=("Consolas", 10, "bold"),
             relief="flat", padx=12, pady=8,
             cursor="hand2"
@@ -436,6 +553,98 @@ class OptimizerApp(tk.Tk):
         self._log("  then click ▶ Run. Run as Administrator for best results.\n", "info")
 
     # ── helpers ──────────────────────────────────────────────────────────────
+
+    def check_for_updates(self, manual=False):
+        def _check():
+            try:
+                req = urllib.request.Request(UPDATE_URL, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    if response.status != 200:
+                        raise Exception(f"HTTP {response.status}")
+                    data = json.loads(response.read().decode())
+                
+                remote_version = data.get("version")
+                download_url = data.get("url")
+                expected_hash = data.get("sha256")
+
+                if remote_version and remote_version > VERSION:
+                    if messagebox.askyesno("Update Available", f"A new version ({remote_version}) is available.\n\nWould you like to download and install it?"):
+                        self._log(f"Downloading update v{remote_version}...", "info")
+                        
+                        ext = os.path.splitext(download_url)[1] or (".exe" if getattr(sys, 'frozen', False) else ".py")
+                        update_path = os.path.join(tempfile.gettempdir(), f"WindowsOptimizer_update{ext}")
+                        
+                        req_dl = urllib.request.Request(download_url, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urllib.request.urlopen(req_dl, timeout=30) as response:
+                            sha256_hash = hashlib.sha256()
+                            with open(update_path, 'wb') as f:
+                                while True:
+                                    chunk = response.read(8192)
+                                    if not chunk: break
+                                    f.write(chunk)
+                                    sha256_hash.update(chunk)
+                        
+                        # Verify file is ready
+                        if not is_file_ready(update_path):
+                            self._log("[!] Error: Update file not ready.", "err")
+                            return
+
+                        if expected_hash and sha256_hash.hexdigest().lower() != expected_hash.lower():
+                            self._log("[!] Security Error: Hash mismatch!", "err")
+                            if os.path.exists(update_path): os.remove(update_path)
+                            messagebox.showerror("Security Error", "Verification failed. Aborting.")
+                            return
+                        
+                        self._log("Launching update...", "ok")
+                        os.startfile(update_path)
+                        self.after(0, self.destroy)
+                        os._exit(0)
+                elif manual:
+                    messagebox.showinfo("Update Check", f"You are on the latest version ({VERSION}).")
+            except Exception as e:
+                self._log(f"Update check failed: {e}", "err")
+                if manual:
+                    messagebox.showerror("Update Check", f"Could not check for updates.\n{e}")
+
+        threading.Thread(target=_check, daemon=True).start()
+
+    def _undo(self):
+        if self.running: return
+        selected = [g for g, v in self.checks.items() if v.get() and g in REVERT_TASKS]
+        if not selected:
+            messagebox.showwarning("Nothing to undo", "Select the categories you wish to revert.")
+            return
+        if not messagebox.askyesno("Confirm Undo", "This will revert selected optimizations to Windows defaults. Continue?"):
+            return
+        self.running = True
+        self.undo_btn.configure(state="disabled", text="⏳ Reverting...")
+        self.progress.start(12)
+        threading.Thread(target=self._undo_worker, args=(selected,), daemon=True).start()
+
+    def _undo_worker(self, groups):
+        t0 = time.time()
+        self._log("\n" + "═"*52, "section")
+        self._log("  ⏪  REVERTING CHANGES", "section")
+        self._log("═"*52 + "\n", "section")
+
+        for group in groups:
+            self._log(f"\n── Reverting: {group} ──", "section")
+            for fn in REVERT_TASKS[group]:
+                try:
+                    fn(self._log)
+                except Exception as e:
+                    self._log(f"   ✖ Error: {e}", "err")
+
+        elapsed = time.time() - t0
+        self._log("\n" + "═"*52, "section")
+        self._log(f"  ✅  REVERT DONE in {elapsed:.1f}s", "ok")
+        self._log("═"*52, "section")
+
+        def finalize():
+            self.running = False
+            self.progress.stop()
+            self.undo_btn.configure(state="normal", text="⏪ Undo Changes")
+        self.after(0, finalize)
 
     def _open_github(self):
         webbrowser.open(GITHUB_URL)

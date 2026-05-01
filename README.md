@@ -32,9 +32,9 @@ Note: The application will automatically prompt for Administrator privileges via
 
 ## ⚠ Disclaimer 
 
-Requires Administrator — most registry and service changes won't work without it. The script auto-requests elevation.
-Restart needed — HAGS, power plan, and some registry changes only take full effect after a reboot.
-DISM /resetbase is irreversible — users can't roll back Windows updates after that step. Worth a warning in your description.
-Disabling Search indexing affects Windows Search speed — some users may not want this.
-Startup program removal is based on a hardcoded list — it won't catch every bloat app on every system.
-No undo/restore — the script doesn't save previous settings. Consider adding a restore/backup feature before publishing if you want to be safe for less technical users.
+**Requires Administrator** — most registry and service changes won't work without it. The script auto-requests elevation.
+**Restart needed** — HAGS, power plan, and some registry changes only take full effect after a reboot.
+**DISM /resetbase is irreversible** — users can't roll back Windows updates after that step. Worth a warning in your description.
+**Disabling Search indexing affects Windows Search speed** — some users may not want this.
+**Startup program removal is based on a hardcoded list** — it won't catch every bloat app on every system.
+**No undo/restore** — the script doesn't save previous settings. Consider adding a restore/backup feature before publishing if you want to be safe for less technical users.

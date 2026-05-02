@@ -20,7 +20,7 @@ import urllib.request
 import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION    = "1.3.0"
+VERSION    = "1.3.1"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
 UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
 
@@ -37,26 +37,26 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 # ─── Dark Spring Orange Palette ──────────────────────────────────────────────
-# Backgrounds: Deep, warm earthy tones
-BASE_BG      = "#0c0a09"  # Stone 950 (Nearly black with warm undertone)
-SIDEBAR_BG   = "#1c1917"  # Stone 900
-PANEL_BG     = "#292524"  # Stone 800
-BORDER       = "#44403c"  # Stone 700
+# Backgrounds: Deep, dark orange-tinted black for a premium look
+BASE_BG      = "#0a0500"  # Darkest Burnt Orange
+SIDEBAR_BG   = "#140c00"  # Deep Clay
+PANEL_BG     = "#1f1400"  # Warm Charcoal Orange
+BORDER       = "#2e1d00"  # Subtle separator
 
-# Accents: Spring Orange (Vibrant but warm)
-ACCENT       = "#f97316"  # Orange 500
-ACCENT_HOVER = "#ea580c"  # Orange 600
-ACCENT_SOFT  = "#7c2d12"  # Orange 900 (Subtle glow)
+# Accents: Vibrant Spring Orange
+ACCENT       = "#ff8c00"  # Dark Orange / Spring Orange
+ACCENT_HOVER = "#e67e00"
+ACCENT_SOFT  = "#4d2b00"  # Muted glow
 
-# Text: Warm Grays
-TEXT_MAIN    = "#fafaf9"  # Stone 50
-TEXT_SUB     = "#d6d3d1"  # Stone 300
-TEXT_MUTED   = "#78716c"  # Stone 500
+# Text: Warm Grays with cream undertones
+TEXT_MAIN    = "#fff8f0"  # Cream White
+TEXT_SUB     = "#d1c7b8"  # Warm Gray
+TEXT_MUTED   = "#665c52"  # Muted Earth
 
 # Feedback
-SUCCESS      = "#fb923c"  # Soft orange-yellow
-WARNING      = "#fde047"  # Warm yellow
-DANGER       = "#f87171"  # Soft red
+SUCCESS      = "#ffa500"  # Orange
+WARNING      = "#ffcc00"  # Warm Gold
+DANGER       = "#ff4d00"  # Bright Orange-Red
 
 # ─── Admin check ─────────────────────────────────────────────────────────────
 def is_admin():
@@ -413,9 +413,8 @@ class ToolTip:
     def show_tip(self, event=None):
         if self.tip_window or not self.text:
             return
-        x, y, _cx, cy = self.widget.bbox("insert")
-        x = x + self.widget.winfo_rootx() + 25
-        y = y + cy + self.widget.winfo_rooty() + 25
+        x = self.widget.winfo_rootx() + 25
+        y = self.widget.winfo_rooty() + 40
         self.tip_window = tw = ctk.CTkToplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry(f"+{x}+{y}")
@@ -443,6 +442,13 @@ class OptimizerApp(ctk.CTk):
         self.configure(fg_color=BASE_BG)
         self.running = False
         self.checks = {}
+        
+        # Set icon
+        try:
+            self.after(201, lambda: self.iconbitmap('WindosOptimazer.ico'))
+        except Exception:
+            pass
+
         self._build_ui()
         self.check_for_updates()
 
@@ -470,8 +476,8 @@ class OptimizerApp(ctk.CTk):
         # Checkboxes
         self.scrollable_frame = ctk.CTkScrollableFrame(
             self.sidebar, label_text="Tweaks", 
-            fg_color="transparent", label_text_color='#f97316',
-            border_width=0, scrollbar_button_color=PANEL_BG
+            fg_color="transparent", label_text_color=ACCENT,
+            border_width=0, scrollbar_button_color=ACCENT_SOFT
         )
         self.scrollable_frame.grid(row=2, column=0, padx=15, pady=0, sticky="nsew")
         self.scrollable_frame.grid_columnconfigure(0, weight=1)

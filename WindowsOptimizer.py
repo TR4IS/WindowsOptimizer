@@ -20,9 +20,17 @@ import urllib.request
 import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION    = "1.3.1"
+VERSION    = "1.3.2"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
 UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 def is_file_ready(file_path):
     """Check if a file is completely written and unlocked."""

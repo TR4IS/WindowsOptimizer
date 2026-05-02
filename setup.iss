@@ -3,6 +3,7 @@
 #define MyAppVersion "1.2.0"
 #define MyAppPublisher "TR4IS"
 #define MyAppURL "https://github.com/TR4IS/WindowsOptimizer"
+#define MyAppVersion "1.3.0"
 #define MyAppExeName "WindowsOptimizer.exe"
 
 [Setup]
@@ -17,6 +18,7 @@ DefaultDirName={localappdata}\Programs\{#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 OutputBaseFilename=WindowsOptimizerSetup
+SetupIconFile=WindosOptimazer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

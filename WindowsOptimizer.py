@@ -1,6 +1,6 @@
 """
 Windows Performance & Gaming Optimizer
-Run as Administrator for full effect.
+Refined Dark Spring Orange Edition
 """
 
 import customtkinter as ctk
@@ -20,7 +20,7 @@ import urllib.request
 import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION    = "1.2.0"
+VERSION    = "1.3.0"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
 UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
 
@@ -36,12 +36,27 @@ def is_file_ready(file_path):
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-# ─── Color palette (Custom for text tags/manual colors) ──────────────────────
-ACCENT    = "#00e5ff"
-SUCCESS   = "#00ff88"
-WARNING   = "#ffaa00"
-DANGER    = "#ff4444"
-TEXT      = "#e2e8f0"
+# ─── Dark Spring Orange Palette ──────────────────────────────────────────────
+# Backgrounds: Deep, warm earthy tones
+BASE_BG      = "#0c0a09"  # Stone 950 (Nearly black with warm undertone)
+SIDEBAR_BG   = "#1c1917"  # Stone 900
+PANEL_BG     = "#292524"  # Stone 800
+BORDER       = "#44403c"  # Stone 700
+
+# Accents: Spring Orange (Vibrant but warm)
+ACCENT       = "#f97316"  # Orange 500
+ACCENT_HOVER = "#ea580c"  # Orange 600
+ACCENT_SOFT  = "#7c2d12"  # Orange 900 (Subtle glow)
+
+# Text: Warm Grays
+TEXT_MAIN    = "#fafaf9"  # Stone 50
+TEXT_SUB     = "#d6d3d1"  # Stone 300
+TEXT_MUTED   = "#78716c"  # Stone 500
+
+# Feedback
+SUCCESS      = "#fb923c"  # Soft orange-yellow
+WARNING      = "#fde047"  # Warm yellow
+DANGER       = "#f87171"  # Soft red
 
 # ─── Admin check ─────────────────────────────────────────────────────────────
 def is_admin():
@@ -62,7 +77,7 @@ def run_cmd(cmd, shell=False, timeout=30):
 # ─── Optimization functions ───────────────────────────────────────────────────
 
 def clean_temp_files(log):
-    log("🗑  Cleaning temporary files...")
+    log("Cleaning temporary files...")
     paths = [
         os.environ.get("TEMP", ""),
         os.environ.get("TMP", ""),
@@ -82,11 +97,11 @@ def clean_temp_files(log):
                     total += size 
                 except Exception:
                     pass
-    log(f"   ✔ Removed ~{total // (1024*1024)} MB of temp files")
+    log(f"   Removed {total // (1024*1024)} MB of junk data")
 
 
 def clean_prefetch(log):
-    log("🗑  Cleaning Prefetch...")
+    log("Cleaning Prefetch...")
     prefetch_dir = os.path.join(os.environ.get("SystemRoot", "C:\\Windows"), "Prefetch")
     removed = 0
     if os.path.isdir(prefetch_dir):
@@ -96,31 +111,31 @@ def clean_prefetch(log):
                 removed += 1
             except Exception:
                 pass
-    log(f"   ✔ Prefetch cleared ({removed} files removed)")
+    log(f"   Cleared {removed} prefetch entries")
 
 
 def empty_recycle_bin(log):
-    log("🗑  Emptying Recycle Bin...")
+    log("Emptying Recycle Bin...")
     try:
         ctypes.windll.shell32.SHEmptyRecycleBinW(None, None, 0x0007)
-        log("   ✔ Recycle Bin emptied")
+        log("   Recycle Bin emptied")
     except Exception as e:
-        log(f"   ✖ {e}")
+        log(f"   Error: {e}")
 
 
 def set_high_performance_power(log):
-    log("⚡ Setting High Performance power plan...")
+    log("Setting High Performance power plan...")
     ok, _ = run_cmd(["powercfg", "/setactive", "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"])
     if not ok:
         run_cmd(["powercfg", "/duplicatescheme", "e9a42b02-d5df-448d-aa00-03f14749eb61"])
         ok2, _ = run_cmd(["powercfg", "/setactive", "e9a42b02-d5df-448d-aa00-03f14749eb61"])
-        log("   ✔ Ultimate Performance plan activated" if ok2 else "   ✔ High Performance plan set")
+        log("   Ultimate Performance active" if ok2 else "   High Performance active")
     else:
-        log("   ✔ High Performance power plan activated")
+        log("   High Performance active")
 
 
 def disable_startup_programs(log):
-    log("🚀 Disabling common bloat startup entries...")
+    log("Disabling common startup bloat...")
     bloat = [
         "OneDrive", "Skype", "Spotify", "Discord", "Teams",
         "AdobeUpdater", "GoogleUpdate", "iTunesHelper",
@@ -140,13 +155,13 @@ def disable_startup_programs(log):
         pass
         
     if disabled:
-        log(f"   ✔ Disabled: {', '.join(disabled)}")
+        log(f"   Disabled: {', '.join(disabled)}")
     else:
-        log("   ✔ No common bloat startup entries found")
+        log("   No startup bloat found")
 
 
 def disable_visual_effects(log):
-    log("🎨 Disabling unnecessary visual effects...")
+    log("Disabling unnecessary visual effects...")
     try:
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
@@ -154,70 +169,70 @@ def disable_visual_effects(log):
             0, winreg.KEY_SET_VALUE
         ) as key:
             winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 2)
-        log("   ✔ Visual effects set to 'Best Performance'")
+        log("   Visual effects optimized for performance")
     except Exception as e:
-        log(f"   ✖ {e}")
+        log(f"   Error: {e}")
 
 
 def set_game_mode(log):
-    log("🎮 Enabling Windows Game Mode...")
+    log("Enabling Windows Game Mode...")
     try:
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\GameBar") as key:
             winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 1)
             winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 1)
-        log("   ✔ Game Mode enabled")
+        log("   Game Mode enabled")
     except Exception as e:
-        log(f"   ✖ {e}")
+        log(f"   Error: {e}")
 
 
 def disable_xbox_game_bar(log):
-    log("🎮 Disabling Xbox Game Bar overlay (FPS boost)...")
+    log("Disabling Xbox DVR and Overlay...")
     try:
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\GameDVR") as key:
             winreg.SetValueEx(key, "AppCaptureEnabled", 0, winreg.REG_DWORD, 0)
             
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore") as key2:
             winreg.SetValueEx(key2, "GameDVR_Enabled", 0, winreg.REG_DWORD, 0)
-        log("   ✔ Xbox Game Bar / DVR disabled")
+        log("   Xbox services disabled")
     except Exception as e:
-        log(f"   ✖ {e}")
+        log(f"   Error: {e}")
 
 
 def set_gpu_scheduling(log):
-    log("🖥  Enabling Hardware-Accelerated GPU Scheduling (HAGS)...")
+    log("Enabling Hardware GPU Scheduling...")
     try:
         with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers") as key:
             winreg.SetValueEx(key, "HwSchMode", 0, winreg.REG_DWORD, 2)
-        log("   ✔ HAGS enabled (restart required)")
+        log("   HAGS enabled (restart required)")
     except Exception as e:
-        log(f"   ✖ {e}")
+        log(f"   Error: {e}")
 
 
 def flush_dns(log):
-    log("🌐 Flushing DNS cache...")
+    log("Flushing DNS cache...")
     ok, _ = run_cmd(["ipconfig", "/flushdns"])
-    log("   ✔ DNS cache flushed" if ok else "   ✖ Failed to flush DNS")
+    log("   DNS flushed" if ok else "   Failed to flush DNS")
 
 
 def disable_search_indexing(log):
-    log("🔍 Stopping Windows Search indexing service...")
+    log("Stopping Search indexing service...")
     run_cmd(["sc", "stop", "WSearch"])
     ok, _ = run_cmd(["sc", "config", "WSearch", "start=", "disabled"])
-    log("   ✔ Search indexing disabled" if ok else "   ✖ Could not disable (may need admin)")
+    log("   Indexing disabled" if ok else "   Could not disable service")
 
 
 def clean_winsxs(log):
-    log("🧹 Running DISM cleanup (removes old Windows update files)...")
-    log("   ⏳ This may take a few minutes. Please wait...")
+    log("Running DISM component cleanup...")
+    log("   This process takes time. Please wait...")
     ok, out = run_cmd(
         ["dism", "/online", "/cleanup-image", "/startcomponentcleanup", "/resetbase"],
         timeout=None
     )
-    log("   ✔ DISM cleanup done" if ok else f"   ✖ DISM: {out[:120].strip()}")
+    log("   DISM cleanup successful" if ok else f"   Error: {out[:120].strip()}")
 
 
 def adjust_timer_resolution(log):
-    log("⏱  Setting processor scheduling to 'Background Services' style for gaming...")
+    log("Optimizing CPU scheduling...")
     try:
         with winreg.OpenKey(
             winreg.HKEY_LOCAL_MACHINE,
@@ -225,13 +240,13 @@ def adjust_timer_resolution(log):
             0, winreg.KEY_SET_VALUE
         ) as key:
             winreg.SetValueEx(key, "Win32PrioritySeparation", 0, winreg.REG_DWORD, 38)
-        log("   ✔ CPU priority tuned for foreground apps / games")
+        log("   Priority tuned for active applications")
     except Exception as e:
-        log(f"   ✖ {e}")
+        log(f"   Error: {e}")
 
 
 def disable_telemetry(log):
-    log("📡 Reducing Windows telemetry / data collection...")
+    log("Reducing telemetry and data collection...")
     cmds = [
         ["sc", "stop", "DiagTrack"],
         ["sc", "config", "DiagTrack", "start=", "disabled"],
@@ -248,11 +263,11 @@ def disable_telemetry(log):
             winreg.SetValueEx(key, "AllowTelemetry", 0, winreg.REG_DWORD, 0)
     except Exception:
         pass
-    log("   ✔ Telemetry services disabled")
+    log("   Telemetry disabled")
 
 
 def optimize_network(log):
-    log("🌐 Optimizing network settings for lower latency...")
+    log("Calibrating network for low latency...")
     cmds = [
         ["netsh", "int", "tcp", "set", "global", "autotuninglevel=normal"],
         ["netsh", "int", "tcp", "set", "global", "chimney=disabled"],
@@ -264,263 +279,322 @@ def optimize_network(log):
     ]
     for cmd in cmds:
         run_cmd(cmd)
-    log("   ✔ Network stack optimized for low latency")
+    log("   Network stack calibrated")
 
 
 def run_disk_cleanup(log):
-    log("💾 Running Disk Cleanup (automated)...")
+    log("Starting automated Disk Cleanup...")
     run_cmd(["cleanmgr", "/sagerun:1"])
-    log("   ✔ Disk Cleanup launched")
+    log("   Cleanup utility launched")
 
 
 # ─── Revert functions ──────────────────────────────────────────────────────────
 
 def revert_power_plan(log):
-    log("⚡ Reverting power plan to Balanced...")
+    log("Restoring Balanced power plan...")
     ok, _ = run_cmd(["powercfg", "/setactive", "381b4222-f694-41f0-9685-ff5bb260df2e"])
-    log("   ✔ Balanced power plan set" if ok else "   ✖ Failed to set Balanced plan")
+    log("   Balanced plan set" if ok else "   Failed to restore plan")
 
 def revert_timer_resolution(log):
-    log("⏱  Reverting processor scheduling to default...")
+    log("Restoring default CPU scheduling...")
     try:
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\PriorityControl", 0, winreg.KEY_SET_VALUE) as key:
             winreg.SetValueEx(key, "Win32PrioritySeparation", 0, winreg.REG_DWORD, 2)
-        log("   ✔ CPU priority reverted to default")
-    except Exception as e: log(f"   ✖ {e}")
+        log("   Scheduling restored to default")
+    except Exception as e: log(f"   Error: {e}")
 
 def revert_game_mode(log):
-    log("🎮 Disabling Windows Game Mode...")
+    log("Disabling Game Mode...")
     try:
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\GameBar") as key:
             winreg.SetValueEx(key, "AutoGameModeEnabled", 0, winreg.REG_DWORD, 0)
             winreg.SetValueEx(key, "AllowAutoGameMode", 0, winreg.REG_DWORD, 0)
-        log("   ✔ Game Mode disabled")
-    except Exception as e: log(f"   ✖ {e}")
+        log("   Game Mode disabled")
+    except Exception as e: log(f"   Error: {e}")
 
 def revert_xbox_game_bar(log):
-    log("🎮 Enabling Xbox Game Bar overlay...")
+    log("Restoring Xbox services...")
     try:
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\GameDVR") as key:
             winreg.SetValueEx(key, "AppCaptureEnabled", 0, winreg.REG_DWORD, 1)
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"System\GameConfigStore") as key2:
             winreg.SetValueEx(key2, "GameDVR_Enabled", 0, winreg.REG_DWORD, 1)
-        log("   ✔ Xbox Game Bar enabled")
-    except Exception as e: log(f"   ✖ {e}")
+        log("   Xbox services enabled")
+    except Exception as e: log(f"   Error: {e}")
 
 def revert_gpu_scheduling(log):
-    log("🖥  Disabling Hardware-Accelerated GPU Scheduling...")
+    log("Disabling GPU Scheduling...")
     try:
         with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers") as key:
             winreg.SetValueEx(key, "HwSchMode", 0, winreg.REG_DWORD, 1)
-        log("   ✔ HAGS disabled (restart required)")
-    except Exception as e: log(f"   ✖ {e}")
+        log("   HAGS disabled")
+    except Exception as e: log(f"   Error: {e}")
 
 def revert_visual_effects(log):
-    log("🎨 Reverting visual effects to Windows default...")
+    log("Restoring default visual effects...")
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects", 0, winreg.KEY_SET_VALUE) as key:
             winreg.SetValueEx(key, "VisualFXSetting", 0, winreg.REG_DWORD, 0)
-        log("   ✔ Visual effects reverted")
-    except Exception as e: log(f"   ✖ {e}")
+        log("   Visual effects restored")
+    except Exception as e: log(f"   Error: {e}")
 
 def revert_search_indexing(log):
-    log("🔍 Enabling Windows Search indexing service...")
+    log("Restoring Search indexing...")
     run_cmd(["sc", "config", "WSearch", "start=", "delayed-auto"])
     ok, _ = run_cmd(["sc", "start", "WSearch"])
-    log("   ✔ Search indexing enabled" if ok else "   ✖ Could not enable")
+    log("   Indexing enabled" if ok else "   Could not restore service")
 
 def revert_telemetry(log):
-    log("📡 Enabling Windows telemetry services...")
+    log("Restoring telemetry services...")
     run_cmd(["sc", "config", "DiagTrack", "start=", "auto"])
     run_cmd(["sc", "start", "DiagTrack"])
     try:
         with winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Policies\Microsoft\Windows\DataCollection") as key:
             winreg.DeleteValue(key, "AllowTelemetry")
     except Exception: pass
-    log("   ✔ Telemetry services enabled")
+    log("   Telemetry restored")
 
 def revert_network_optimization(log):
-    log("🌐 Reverting network settings to defaults...")
+    log("Restoring default network settings...")
     cmds = [
         ["netsh", "int", "tcp", "set", "global", "autotuninglevel=normal"],
         ["netsh", "int", "tcp", "set", "global", "rss=enabled"],
         ["netsh", "int", "tcp", "set", "global", "timestamps=disabled"],
     ]
     for cmd in cmds: run_cmd(cmd)
-    log("   ✔ Network settings reverted")
+    log("   Network restored")
 
-# ─── Task groups ─────────────────────────────────────────────────────────────
+# ─── Task Data ───────────────────────────────────────────────────────────────
 
 TASKS = {
-    "🗑 Clean Temp & Junk Files": [
-        clean_temp_files, clean_prefetch, empty_recycle_bin
-    ],
-    "⚡ Power & CPU Tuning": [
-        set_high_performance_power, adjust_timer_resolution
-    ],
-    "🎮 Gaming Optimizations": [
-        set_game_mode, disable_xbox_game_bar, set_gpu_scheduling, disable_visual_effects
-    ],
-    "🚀 Startup & Services": [
-        disable_startup_programs, disable_search_indexing, disable_telemetry
-    ],
-    "🌐 Network & DNS": [
-        flush_dns, optimize_network
-    ],
-    "🧹 Deep System Cleanup": [
-        clean_winsxs, run_disk_cleanup
-    ],
+    "System Maintenance": {
+        "funcs": [clean_temp_files, clean_prefetch, empty_recycle_bin],
+        "desc": "Removes temporary files, prefetch data, and empties the recycle bin to free up disk space."
+    },
+    "Performance Tuning": {
+        "funcs": [set_high_performance_power, adjust_timer_resolution],
+        "desc": "Activates the High Performance power plan and tunes CPU scheduling for active applications."
+    },
+    "Gaming Enhancements": {
+        "funcs": [set_game_mode, disable_xbox_game_bar, set_gpu_scheduling, disable_visual_effects],
+        "desc": "Enables Game Mode, HAGS, and disables Xbox DVR and heavy visual effects for maximum FPS."
+    },
+    "Service Optimization": {
+        "funcs": [disable_startup_programs, disable_search_indexing, disable_telemetry],
+        "desc": "Disables startup bloat, Search indexing, and telemetry services to reduce background CPU usage."
+    },
+    "Network Calibration": {
+        "funcs": [flush_dns, optimize_network],
+        "desc": "Optimizes the TCP stack and flushes DNS to reduce latency and jitter in online games."
+    },
+    "Advanced Cleanup": {
+        "funcs": [clean_winsxs, run_disk_cleanup],
+        "desc": "Performs deep DISM component cleanup and launches the system disk cleanup utility."
+    },
 }
 
 REVERT_TASKS = {
-    "⚡ Power & CPU Tuning": [revert_power_plan, revert_timer_resolution],
-    "🎮 Gaming Optimizations": [revert_game_mode, revert_xbox_game_bar, revert_gpu_scheduling, revert_visual_effects],
-    "🚀 Startup & Services": [revert_search_indexing, revert_telemetry],
-    "🌐 Network & DNS": [revert_network_optimization],
+    "Performance Tuning": [revert_power_plan, revert_timer_resolution],
+    "Gaming Enhancements": [revert_game_mode, revert_xbox_game_bar, revert_gpu_scheduling, revert_visual_effects],
+    "Service Optimization": [revert_search_indexing, revert_telemetry],
+    "Network Calibration": [revert_network_optimization],
 }
 
-# ─── GUI ─────────────────────────────────────────────────────────────────────
+# ─── GUI Components ──────────────────────────────────────────────────────────
+
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tip_window = None
+        self.widget.bind("<Enter>", self.show_tip)
+        self.widget.bind("<Leave>", self.hide_tip)
+
+    def show_tip(self, event=None):
+        if self.tip_window or not self.text:
+            return
+        x, y, _cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 25
+        y = y + cy + self.widget.winfo_rooty() + 25
+        self.tip_window = tw = ctk.CTkToplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry(f"+{x}+{y}")
+        tw.attributes("-topmost", True)
+        
+        label = ctk.CTkLabel(
+            tw, text=self.text, justify="left",
+            bg_color=PANEL_BG, text_color=TEXT_SUB,
+            padx=10, pady=5, font=ctk.CTkFont(size=12),
+            corner_radius=4
+        )
+        label.pack()
+
+    def hide_tip(self, event=None):
+        tw = self.tip_window
+        self.tip_window = None
+        if tw:
+            tw.destroy()
 
 class OptimizerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title(f"⚡ Windows Optimizer v{VERSION}")
-        self.geometry("920x720")
+        self.title(f"Windows Optimizer v{VERSION}")
+        self.geometry("1100x800")
+        self.configure(fg_color=BASE_BG)
         self.running = False
         self.checks = {}
         self._build_ui()
         self.check_for_updates()
 
     def _build_ui(self):
-        # ── Grid config ──
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         # ── Sidebar ──
-        self.sidebar = ctk.CTkFrame(self, width=280, corner_radius=0)
+        self.sidebar = ctk.CTkFrame(self, width=340, corner_radius=0, fg_color=SIDEBAR_BG, border_width=1, border_color=BORDER)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_rowconfigure(4, weight=1)
 
         ctk.CTkLabel(
-            self.sidebar, text="⚡ Optimizer",
-            font=ctk.CTkFont(size=24, weight="bold"), text_color=ACCENT
-        ).grid(row=0, column=0, padx=20, pady=(20, 10))
+            self.sidebar, text="Optimizer",
+            font=ctk.CTkFont(size=30, weight="normal"), text_color=ACCENT
+        ).grid(row=0, column=0, padx=20, pady=(40, 5))
 
-        # Admin status
         admin_color = SUCCESS if is_admin() else DANGER
-        admin_text  = "● Admin Active" if is_admin() else "● No Admin Rights"
+        admin_text  = "Admin Mode Active" if is_admin() else "Limited Mode"
         ctk.CTkLabel(
             self.sidebar, text=admin_text,
-            font=ctk.CTkFont(size=12), text_color=admin_color
-        ).grid(row=1, column=0, padx=20, pady=(0, 20))
+            font=ctk.CTkFont(size=13, weight="normal"), text_color=admin_color
+        ).grid(row=1, column=0, padx=20, pady=(0, 40))
 
-        # Checkboxes area
-        self.scrollable_frame = ctk.CTkScrollableFrame(self.sidebar, label_text="Optimizations")
-        self.scrollable_frame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        # Checkboxes
+        self.scrollable_frame = ctk.CTkScrollableFrame(
+            self.sidebar, label_text="Tweaks", 
+            fg_color="transparent", label_text_color='#f97316',
+            border_width=0, scrollbar_button_color=PANEL_BG
+        )
+        self.scrollable_frame.grid(row=2, column=0, padx=15, pady=0, sticky="nsew")
         self.scrollable_frame.grid_columnconfigure(0, weight=1)
 
-        for group in TASKS:
+        for group, data in TASKS.items():
             var = ctk.BooleanVar(value=True)
             self.checks[group] = var
             cb = ctk.CTkCheckBox(
                 self.scrollable_frame, text=group, variable=var,
-                font=ctk.CTkFont(size=13), corner_radius=6
+                font=ctk.CTkFont(size=15, weight="normal"), 
+                border_width=1, corner_radius=4,
+                fg_color=ACCENT, hover_color=ACCENT_HOVER,
+                text_color=TEXT_SUB, text_color_disabled=TEXT_MUTED
             )
-            cb.pack(fill="x", padx=10, pady=10)
+            cb.pack(fill="x", padx=15, pady=12)
+            ToolTip(cb, data["desc"])
 
-        # Sidebar Buttons
+        # Selection Buttons
+        self.sel_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        self.sel_frame.grid(row=3, column=0, padx=20, pady=30)
+
         self.all_btn = ctk.CTkButton(
-            self.sidebar, text="Select All", height=32,
-            fg_color="transparent", border_width=1,
-            command=self._select_all
+            self.sel_frame, text="All", height=32, width=100,
+            fg_color=PANEL_BG, border_width=1, border_color=BORDER,
+            hover_color=BORDER, font=ctk.CTkFont(size=12, weight="normal"),
+            text_color=TEXT_SUB, command=self._select_all
         )
-        self.all_btn.grid(row=3, column=0, padx=20, pady=(10, 0))
+        self.all_btn.pack(side="left", padx=8)
 
         self.none_btn = ctk.CTkButton(
-            self.sidebar, text="Deselect All", height=32,
-            fg_color="transparent", border_width=1,
-            command=self._select_none
+            self.sel_frame, text="None", height=32, width=100,
+            fg_color=PANEL_BG, border_width=1, border_color=BORDER,
+            hover_color=BORDER, font=ctk.CTkFont(size=12, weight="normal"),
+            text_color=TEXT_SUB, command=self._select_none
         )
-        self.none_btn.grid(row=4, column=0, padx=20, pady=(10, 0), sticky="n")
+        self.none_btn.pack(side="left", padx=8)
 
         # Sidebar Footer
+        self.footer = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        self.footer.grid(row=5, column=0, padx=20, pady=30, sticky="s")
+
         self.gh_btn = ctk.CTkButton(
-            self.sidebar, text="⭐ GitHub", height=32,
-            fg_color="#24292e", hover_color="#333",
-            command=self._open_github
+            self.footer, text="Open GitHub", height=36,
+            fg_color="transparent", border_width=1, border_color=BORDER,
+            hover_color=PANEL_BG, font=ctk.CTkFont(size=13, weight="normal"),
+            text_color=TEXT_SUB, command=self._open_github
         )
-        self.gh_btn.grid(row=5, column=0, padx=20, pady=10)
+        self.gh_btn.pack(fill="x", pady=6)
 
         self.upd_btn = ctk.CTkButton(
-            self.sidebar, text="🔄 Check Update", height=32,
-            fg_color="transparent", border_width=1, border_color=SUCCESS,
-            text_color=SUCCESS, hover_color="#1a3328",
+            self.footer, text="Check Updates", height=36,
+            fg_color="transparent", border_width=1, border_color=ACCENT,
+            text_color=ACCENT, hover_color=PANEL_BG,
+            font=ctk.CTkFont(size=13, weight="normal"),
             command=lambda: self.check_for_updates(manual=True)
         )
-        self.upd_btn.grid(row=6, column=0, padx=20, pady=(0, 20))
+        self.upd_btn.pack(fill="x", pady=6)
 
         # ── Main Area ──
-        self.main_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_frame.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.main_frame = ctk.CTkFrame(self, fg_color=BASE_BG)
+        self.main_frame.grid(row=0, column=1, padx=40, pady=40, sticky="nsew")
         self.main_frame.grid_columnconfigure(0, weight=1)
         self.main_frame.grid_rowconfigure(1, weight=1)
 
-        # Top Bar
-        self.top_bar = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.top_bar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        self.header_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.header_frame.grid(row=0, column=0, sticky="ew", pady=(0, 25))
         
         ctk.CTkLabel(
-            self.top_bar, text="Operation Log",
-            font=ctk.CTkFont(size=16, weight="bold")
+            self.header_frame, text="Operation Console",
+            font=ctk.CTkFont(size=22, weight="normal"), text_color=TEXT_MAIN
         ).pack(side="left")
 
         self.clear_btn = ctk.CTkButton(
-            self.top_bar, text="Clear", width=80, height=26,
-            fg_color="transparent", border_width=1,
-            command=self._clear_log
+            self.header_frame, text="Clear Console", width=120, height=30,
+            fg_color=PANEL_BG, border_width=1, border_color=BORDER,
+            hover_color=BORDER, font=ctk.CTkFont(size=12, weight="normal"),
+            text_color=TEXT_SUB, command=self._clear_log
         )
         self.clear_btn.pack(side="right")
 
-        # Log Textbox
-        self.log_box = ctk.CTkTextbox(self.main_frame, font=ctk.CTkFont(family="Consolas", size=13))
+        self.log_box = ctk.CTkTextbox(
+            self.main_frame, 
+            font=ctk.CTkFont(family="Consolas", size=13),
+            fg_color=SIDEBAR_BG, border_width=1, border_color=BORDER,
+            text_color=TEXT_MAIN, corner_radius=4
+        )
         self.log_box.grid(row=1, column=0, sticky="nsew")
         
-        # Tags for log box
-        # Note: CTkTextbox doesn't support tags directly like tk.Text, but we can access the internal widget
         self.log_box._textbox.tag_config("ok",      foreground=SUCCESS)
         self.log_box._textbox.tag_config("err",     foreground=DANGER)
         self.log_box._textbox.tag_config("section", foreground=ACCENT)
         self.log_box._textbox.tag_config("info",    foreground=WARNING)
 
-        # Action Buttons
         self.actions = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.actions.grid(row=2, column=0, sticky="ew", pady=(10, 0))
+        self.actions.grid(row=2, column=0, sticky="ew", pady=(30, 0))
 
         self.run_btn = ctk.CTkButton(
-            self.actions, text="▶  Run Optimizations", height=45,
-            font=ctk.CTkFont(size=15, weight="bold"),
-            fg_color=ACCENT2, hover_color="#6d28d9",
-            command=self._run
+            self.actions, text="Start Optimization", height=60,
+            font=ctk.CTkFont(size=17, weight="normal"),
+            fg_color=ACCENT, hover_color=ACCENT_HOVER, text_color=BASE_BG,
+            command=self._run, corner_radius=4
         )
-        self.run_btn.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.run_btn.pack(side="left", fill="x", expand=True, padx=(0, 15))
 
         self.undo_btn = ctk.CTkButton(
-            self.actions, text="⏪ Undo Changes", height=45,
-            font=ctk.CTkFont(size=15, weight="bold"),
-            fg_color="#334155", hover_color="#475569",
-            text_color=WARNING,
-            command=self._undo
+            self.actions, text="Restore Defaults", height=60,
+            font=ctk.CTkFont(size=17, weight="normal"),
+            fg_color=PANEL_BG, border_width=1, border_color=BORDER,
+            hover_color=BORDER, text_color=WARNING,
+            command=self._undo, corner_radius=4
         )
-        self.undo_btn.pack(side="left", fill="x", expand=True, padx=(5, 0))
+        self.undo_btn.pack(side="left", fill="x", expand=True, padx=(15, 0))
 
-        # Progress
-        self.progress = ctk.CTkProgressBar(self.main_frame, mode="indeterminate")
-        self.progress.grid(row=3, column=0, sticky="ew", pady=(15, 0))
+        self.progress = ctk.CTkProgressBar(
+            self.main_frame, mode="indeterminate", 
+            fg_color=PANEL_BG, progress_color=ACCENT, height=2
+        )
+        self.progress.grid(row=3, column=0, sticky="ew", pady=(25, 0))
         self.progress.set(0)
 
-        self._log("  Welcome! Select categories in the sidebar and click Run.", "info")
+        self._log("System ready. Hover over tweaks for details.", "info")
         if not is_admin():
-            self._log("  [!] Running without Administrator rights. Most tweaks will fail.", "err")
+            self._log("Warning: Admin rights recommended for full effect.", "err")
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -538,8 +612,8 @@ class OptimizerApp(ctk.CTk):
                 expected_hash = data.get("sha256")
 
                 if remote_version and remote_version > VERSION:
-                    if messagebox.askyesno("Update Available", f"A new version ({remote_version}) is available.\n\nWould you like to download and install it?"):
-                        self._log(f"Downloading update v{remote_version}...", "info")
+                    if messagebox.askyesno("Update", f"Version {remote_version} is available. Install now?"):
+                        self._log(f"Downloading update {remote_version}...", "info")
                         
                         ext = os.path.splitext(download_url)[1] or (".exe" if getattr(sys, 'frozen', False) else ".py")
                         update_path = os.path.join(tempfile.gettempdir(), f"WindowsOptimizer_update{ext}")
@@ -555,25 +629,23 @@ class OptimizerApp(ctk.CTk):
                                     sha256_hash.update(chunk)
                         
                         if not is_file_ready(update_path):
-                            self._log("[!] Error: Update file not ready.", "err")
+                            self._log("Error: Download failed.", "err")
                             return
 
                         if expected_hash and sha256_hash.hexdigest().lower() != expected_hash.lower():
-                            self._log("[!] Security Error: Hash mismatch!", "err")
+                            self._log("Security: Hash mismatch.", "err")
                             if os.path.exists(update_path): os.remove(update_path)
-                            messagebox.showerror("Security Error", "Verification failed. Aborting.")
+                            messagebox.showerror("Error", "Update verification failed.")
                             return
                         
-                        self._log("Launching update...", "ok")
+                        self._log("Starting update...", "ok")
                         os.startfile(update_path)
                         self.after(0, self.destroy)
                         os._exit(0)
                 elif manual:
-                    messagebox.showinfo("Update Check", f"You are on the latest version ({VERSION}).")
+                    messagebox.showinfo("Update", f"You are running version {VERSION}.")
             except Exception as e:
-                self._log(f"Update check failed: {e}", "err")
-                if manual:
-                    messagebox.showerror("Update Check", f"Could not check for updates.\n{e}")
+                self._log(f"Check failed: {e}", "err")
 
         threading.Thread(target=_check, daemon=True).start()
 
@@ -581,38 +653,38 @@ class OptimizerApp(ctk.CTk):
         if self.running: return
         selected = [g for g, v in self.checks.items() if v.get() and g in REVERT_TASKS]
         if not selected:
-            messagebox.showwarning("Nothing to undo", "Select the categories you wish to revert.")
+            messagebox.showwarning("Notice", "Select categories to restore.")
             return
-        if not messagebox.askyesno("Confirm Undo", "This will revert selected optimizations to Windows defaults. Continue?"):
+        if not messagebox.askyesno("Confirm", "Restore defaults for selected categories?"):
             return
         self.running = True
-        self.undo_btn.configure(state="disabled", text="⏳ Reverting...")
+        self.undo_btn.configure(state="disabled", text="Restoring...")
         self.progress.start()
         threading.Thread(target=self._undo_worker, args=(selected,), daemon=True).start()
 
     def _undo_worker(self, groups):
         t0 = time.time()
-        self._log("\n" + "═"*52, "section")
-        self._log("  ⏪  REVERTING CHANGES", "section")
-        self._log("═"*52 + "\n", "section")
+        self._log("\n" + "-"*40, "section")
+        self._log("RESTORING DEFAULTS", "section")
+        self._log("-"*40 + "\n", "section")
 
         for group in groups:
-            self._log(f"\n── Reverting: {group} ──", "section")
+            self._log(f"Restoring: {group}", "section")
             for fn in REVERT_TASKS[group]:
                 try:
                     fn(self._log)
                 except Exception as e:
-                    self._log(f"   ✖ Error: {e}", "err")
+                    self._log(f"   Error: {e}", "err")
 
         elapsed = time.time() - t0
-        self._log("\n" + "═"*52, "section")
-        self._log(f"  ✅  REVERT DONE in {elapsed:.1f}s", "ok")
-        self._log("═"*52, "section")
+        self._log("\n" + "-"*40, "section")
+        self._log(f"RESTORE COMPLETE ({elapsed:.1f}s)", "ok")
+        self._log("-"*40, "section")
 
         def finalize():
             self.running = False
             self.progress.stop()
-            self.undo_btn.configure(state="normal", text="⏪ Undo Changes")
+            self.undo_btn.configure(state="normal", text="Restore Defaults")
         self.after(0, finalize)
 
     def _open_github(self):
@@ -644,52 +716,49 @@ class OptimizerApp(ctk.CTk):
             return
         selected = [g for g, v in self.checks.items() if v.get()]
         if not selected:
-            messagebox.showwarning("Nothing selected", "Please select at least one optimization.")
+            messagebox.showwarning("Notice", "Select at least one category.")
             return
         self.running = True
-        self.run_btn.configure(state="disabled", text="⏳ Running...")
+        self.run_btn.configure(state="disabled", text="Processing...")
         self.progress.start()
         threading.Thread(target=self._worker, args=(selected,), daemon=True).start()
 
     def _worker(self, groups):
         t0 = time.time()
-        self._log("\n" + "═"*52, "section")
-        self._log("  ⚡  OPTIMIZATION STARTED", "section")
-        self._log("═"*52 + "\n", "section")
+        self._log("\n" + "-"*40, "section")
+        self._log("OPTIMIZATION BEGUN", "section")
+        self._log("-"*40 + "\n", "section")
 
         for group in groups:
-            self._log(f"\n── {group} ──", "section")
-            for fn in TASKS[group]:
+            self._log(f"Processing: {group}", "section")
+            for fn in TASKS[group]["funcs"]:
                 try:
                     fn(self._log)
                 except Exception as e:
-                    self._log(f"   ✖ Error: {e}", "err")
+                    self._log(f"   Error: {e}", "err")
 
         elapsed = time.time() - t0
-        self._log("\n" + "═"*52, "section")
-        self._log(f"  ✅  DONE in {elapsed:.1f}s", "ok")
-        self._log("  Restart your PC for all changes to take effect.", "info")
-        self._log("═"*52, "section")
+        self._log("\n" + "-"*40, "section")
+        self._log(f"PROCESS COMPLETE ({elapsed:.1f}s)", "ok")
+        self._log("Restart your device for all changes to apply.", "info")
+        self._log("-"*40, "section")
 
         def finalize():
             self.running = False
             self.progress.stop()
-            self.run_btn.configure(state="normal", text="▶  Run Optimizations")
+            self.run_btn.configure(state="normal", text="Start Optimization")
         self.after(0, finalize)
 
 # ─── Entry point ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     if sys.platform != "win32":
-        print("This script is for Windows only.")
         sys.exit(1)
 
     if not is_admin():
         try:
             args_string = " ".join(f'"{arg}"' for arg in sys.argv)
-            ctypes.windll.shell32.ShellExecuteW(
-                None, "runas", sys.executable, args_string, None, 1
-            )
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, args_string, None, 1)
         except Exception:
             pass
         sys.exit(0)

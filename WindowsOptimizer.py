@@ -20,7 +20,7 @@ import urllib.request
 import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION    = "1.3.2"
+VERSION    = "1.3.3"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
 UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
 
@@ -453,7 +453,9 @@ class OptimizerApp(ctk.CTk):
         
         # Set icon
         try:
-            self.after(201, lambda: self.iconbitmap('WindosOptimazer.ico'))
+            icon_path = resource_path('WindosOptimazer.ico')
+            if os.path.exists(icon_path):
+                self.after(201, lambda: self.iconbitmap(icon_path))
         except Exception:
             pass
 
@@ -765,9 +767,28 @@ class OptimizerApp(ctk.CTk):
 
 # ─── Entry point ─────────────────────────────────────────────────────────────
 
+mutex_handle = None
+
+def check_lock():
+    global mutex_handle
+    try:
+        mutex_name = "TR4IS_Windows_Optimizer_Instance_Lock"
+        mutex_handle = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+        if ctypes.windll.kernel32.GetLastError() == 183: # ERROR_ALREADY_EXISTS
+            return False
+        return True
+    except Exception:
+        return True
+
 if __name__ == "__main__":
     if sys.platform != "win32":
         sys.exit(1)
+
+    if not check_lock():
+        time.sleep(0.5)
+        if not check_lock():
+            ctypes.windll.user32.MessageBoxW(0, "Windows Optimizer is already running.", "Instance Active", 0x40 | 0x0)
+            sys.exit(0)
 
     if not is_admin():
         try:

@@ -3,6 +3,7 @@
 #define MyAppVersion "1.3.2"
 #define MyAppPublisher "TR4IS"
 #define MyAppURL "https://github.com/TR4IS/WindowsOptimizer"
+#define MyAppVersion "1.3.3"
 #define MyAppExeName "WindowsOptimizer.exe"
 
 [Setup]

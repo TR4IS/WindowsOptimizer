@@ -24,11 +24,17 @@ Because this script relies strictly on Python's built-in standard libraries, the
    git clone [https://github.com/TR4IS/WindowsOptimizer.git](https://github.com/TR4IS/WindowsOptimizer.git)
    cd WindowsOptimizer
    ```
+2. install the dependencies:
+   ```bash
+   pip install customtkinter
+   ```
 2. Run the script:
 
-```Bash
-python WindowsOptimizer.py
-```
+   ```Bash
+   python WindowsOptimizer.py
+   ```
+
+   
 Note: The application will automatically prompt for Administrator privileges via UAC if not already elevated.
 
 ## ⚠ Disclaimer 

@@ -1,7 +1,7 @@
-![icon](WindosOptimazer.ico)
+![icon](WindowsOptimizer.ico)
 # ⚡ Windows Performance Optimizer
 
-![Version](https://img.shields.io/badge/version-1.3.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.4-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgray.svg)
 ![Python](https://img.shields.io/badge/python-3.8%2B-green.svg)
 

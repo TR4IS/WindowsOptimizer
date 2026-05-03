@@ -20,7 +20,7 @@ import urllib.request
 import tempfile
 
 # ─── App Info ────────────────────────────────────────────────────────────────
-VERSION    = "1.3.3"
+VERSION    = "1.3.4"
 GITHUB_URL = "https://github.com/TR4IS/WindowsOptimizer"
 UPDATE_URL = "https://raw.githubusercontent.com/TR4IS/WindowsOptimizer/main/docs/version.json"
 
@@ -453,7 +453,7 @@ class OptimizerApp(ctk.CTk):
         
         # Set icon
         try:
-            icon_path = resource_path('WindosOptimazer.ico')
+            icon_path = resource_path('WindowsOptimizer.ico')
             if os.path.exists(icon_path):
                 self.after(201, lambda: self.iconbitmap(icon_path))
         except Exception:
